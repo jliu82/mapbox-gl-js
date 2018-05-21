@@ -26,6 +26,7 @@ class DragRotateHandler {
     _el: HTMLElement;
     _state: 'disabled' | 'enabled' | 'pending' | 'active';
     _button: 'right' | 'left';
+    _nonMapController: boolean;
     _eventButton: number;
     _bearingSnap: number;
     _pitchWithRotate: boolean;
@@ -53,11 +54,12 @@ class DragRotateHandler {
     }) {
         this._map = map;
         this._el = options.element || map.getCanvasContainer();
+        this._nonMapController = this._el !== map.getCanvasContainer();
+
         this._state = 'disabled';
         this._button = options.button || 'right';
         this._bearingSnap = options.bearingSnap || 0;
         this._pitchWithRotate = options.pitchWithRotate !== false;
-
         bindAll([
             '_onMouseMove',
             '_onMouseUp',
@@ -92,6 +94,9 @@ class DragRotateHandler {
      */
     enable() {
         if (this.isEnabled()) return;
+        if (this._nonMapController) {
+            DOM.addEventListener(this._el, 'mousedown', this.onMouseDown.bind(this));
+        }
         this._state = 'enabled';
     }
 
@@ -121,6 +126,9 @@ class DragRotateHandler {
         default:
             this._state = 'disabled';
             break;
+        }
+        if (this._nonMapController) {
+            DOM.removeEventListener(this._el, 'mousedown', this.onMouseDown.bind(this));
         }
     }
 

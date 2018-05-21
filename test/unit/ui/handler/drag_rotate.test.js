@@ -4,6 +4,7 @@ import window from '../../../../src/util/window';
 import Map from '../../../../src/ui/map';
 import DOM from '../../../../src/util/dom';
 import simulate from 'mapbox-gl-js-test/simulate_interaction';
+import DragRotateHandler from '../../../../src/ui/handler/drag_rotate';
 
 function createMap(options) {
     return new Map(extend({ container: DOM.create('div', '', window.document.body) }, options));
@@ -679,6 +680,23 @@ test(`DragRotateHandler can be disabled after mousedown (#2419)`, (t) => {
     t.equal(rotateend.callCount, 0);
     t.equal(map.isMoving(), false);
     t.equal(map.dragRotate.isEnabled(), false);
+
+    map.remove();
+    t.end();
+});
+
+test(`DragRotateHandler manages MouseDown listener for non-map controllers (#6650)`, (t) => {
+    const map = createMap();
+    const button = DOM.create('button', '', window.document.body);
+    const addListenerSpy = t.spy(button, 'addEventListener');
+    const removeListenerSpy = t.spy(button, 'removeEventListener');
+
+    const rotator = new DragRotateHandler(map, {button: 'left', element: button});
+    rotator.enable();
+    t.ok(addListenerSpy.calledOnce);
+
+    rotator.disable();
+    t.ok(removeListenerSpy.calledOnce);
 
     map.remove();
     t.end();
